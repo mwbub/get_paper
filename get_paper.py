@@ -62,18 +62,29 @@ def main():
             Download the PDF of a paper and add the BibTeX citation
             to a .bib file, using the INSPIRE database.
             """,
-        epilog='At least one option is required to specify the desired paper.')
+        epilog="""
+            At least one identifier option is required to specify the 
+            desired paper. If more than one option is provided, only 
+            one will be used, and the rest will be ignored.
+            """)
     parser.add_argument('directory', help='destination directory')
-    parser.add_argument('-a', '--arxiv', metavar='IDENTIFIER', help='arXiv identifier')
+    parser.add_argument('-a', '--arxiv', help='arXiv identifier')
+    parser.add_argument('-d', '--doi', help='DOI')
+    parser.add_argument('-i', '--inspire', help='INSPIRE literature identifier')
     args = parser.parse_args()
 
-    # Check that options were provided
-    arxiv_id = args.arxiv
-    if arxiv_id is None:
+    # Determine the INSPIRE url given the provided options 
+    if args.arxiv is not None:
+        inspire_url = 'https://inspirehep.net/api/arxiv/{}'.format(args.arxiv)
+    elif args.doi is not None:
+        inspire_url = 'https://inspirehep.net/api/doi/{}'.format(args.doi)
+    elif args.inspire is not None:
+        inspire_url = 'https://inspirehep.net/api/literature/{}'.format(args.inspire)
+    else:
         raise parser.error('no options provided')
 
     # Get the INSPIRE json for the paper
-    r_inspire = requests.get('https://inspirehep.net/api/arxiv/{}'.format(arxiv_id))
+    r_inspire = requests.get(inspire_url)
     r_inspire.raise_for_status()
 
     # Get metadata and links from the json
