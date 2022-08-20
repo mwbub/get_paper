@@ -1,5 +1,5 @@
 """
-Retrieve PDFs and bibtex entries for papers from INSPIRE
+Retrieve PDFs and BibTeX entries for papers from INSPIRE
 """
 import os
 import json
@@ -85,11 +85,6 @@ def main():
     texkey = metadata['texkeys'][0]
     eprint = metadata['arxiv_eprints'][0]['value']
 
-    # Get the bibtex citation
-    r_bibtex = requests.get(links['bibtex'])
-    r_bibtex.raise_for_status()
-    bibtex = r_bibtex.text
-
     # Get the pdf url, either from arxiv or directly from INSPIRE 
     if 'documents' in metadata:
         pdf_url = metadata['documents'][0]['url']
@@ -99,6 +94,10 @@ def main():
     # Get the pdf
     r_pdf = requests.get(pdf_url)
     r_pdf.raise_for_status()
+
+    # Get the bibtex citation
+    r_bibtex = requests.get(links['bibtex'])
+    r_bibtex.raise_for_status()
 
     # Create a pdf filename from the title and texkey
     pdf_filename = '{}_{}.pdf'.format(parse_texkey(texkey), to_pascal(title))
@@ -120,7 +119,7 @@ def main():
     bib_path = os.path.join(pdf_dir, 'references.bib')
     clean_bib(bib_path, texkey)
     with open(bib_path, 'a') as file:
-        file.write(bibtex)
+        file.write(r_bibtex.text)
         file.write('\n')
     print('Saved BibTeX citation to {}'.format(bib_path))
     
