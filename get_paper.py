@@ -65,6 +65,10 @@ def replace_interior(string):
             else:
                 level -= 1
                 start_quote = True
+
+    # Ensure that all quotations and curly braces are closed
+    if level != 0:
+        raise SyntaxError('unpaired quotation or curly brace in .bib file')
     
     return string
 
