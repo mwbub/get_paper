@@ -81,7 +81,7 @@ def main():
     elif args.inspire is not None:
         inspire_url = 'https://inspirehep.net/api/literature/{}'.format(args.inspire)
     else:
-        raise parser.error('no options provided')
+        parser.error('no options provided')
 
     # Get the INSPIRE json for the paper
     r_inspire = requests.get(inspire_url)
