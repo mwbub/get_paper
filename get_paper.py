@@ -6,7 +6,8 @@ import re
 import json
 import requests
 
-from argparse import ArgumentParser
+from textwrap import dedent
+from argparse import ArgumentParser, RawDescriptionHelpFormatter
 
 
 ###################
@@ -122,7 +123,17 @@ def delete_bibentry(path, key):
                 # Stop deleting at the end of the entry
                 if line == '\n':
                     delete = False
-
+                    
+               
+def make_dir(path):
+    """
+    Create a new directory at path. If the directory already exists, ignore it.
+    """
+    if not os.path.exists(path):
+        os.mkdir(path)
+    if not os.path.isdir(path):
+        raise NotADirectoryError("{} is not a directory".format(path))
+    
 
 ###################
 # Main
@@ -132,19 +143,30 @@ def main():
 
     # Parse the program options and arguments
     parser = ArgumentParser(
-        description="""
-            Download the PDF of a paper and add the BibTeX citation
-            to a .bib file, using the INSPIRE database.
-            """,
-        epilog="""
-            At least one identifier option is required to specify the 
-            desired paper. If more than one option is provided, only 
-            one will be used, and the rest will be ignored.
-            """)
+        description=dedent("""
+            Download the PDF of a paper and add the BibTeX citation to a .bib 
+            file, using the INSPIRE database.
+            """),
+        epilog=dedent("""
+            At least one identifier option -a, -d, or -i is required to specify 
+            the desired paper. If more than one of -a, -d, or -i is provided, 
+            only the first in the order listed above will be used.
+            
+            If directory does not exist, it will be created.
+            
+            If the option -b is not provided, the BibTeX entry will be saved to
+            "directory/references.bib". Otherwise, the BibTeX entry will be
+            saved to "DEST" or "DEST/references.bib", depending on whether DEST
+            is a path to a .bib file or to a directory. If DEST is a directory
+            which does not exist, it will be created.
+            """),
+        formatter_class=RawDescriptionHelpFormatter)
     parser.add_argument('directory', help='destination directory')
     parser.add_argument('-a', '--arxiv', help='arXiv identifier')
     parser.add_argument('-d', '--doi', help='DOI')
     parser.add_argument('-i', '--inspire', help='INSPIRE literature identifier')
+    parser.add_argument('-b', '--bib-destination', dest='bib_dest', metavar='DEST', 
+                        help='bibliography destination or direcctory')
     args = parser.parse_args()
 
     # Determine the INSPIRE url given the provided options 
@@ -155,7 +177,7 @@ def main():
     elif args.inspire is not None:
         inspire_url = 'https://inspirehep.net/api/literature/{}'.format(args.inspire)
     else:
-        parser.error('no options provided')
+        parser.error('no identifier option provided')
 
     # Get the INSPIRE json for the paper
     r_inspire = requests.get(inspire_url)
@@ -187,13 +209,26 @@ def main():
     # Create a pdf filename from the title and texkey
     pdf_filename = '{}_{}.pdf'.format(parse_texkey(texkey), to_pascal(title))
 
-    # Create the directory and ensure that it is valid
+    # Create the PDF directory
     pdf_dir = os.path.abspath(args.directory)
-    if not os.path.exists(pdf_dir):
-        os.mkdir(pdf_dir)
-    if not os.path.isdir(pdf_dir):
-        raise NotADirectoryError("{} is not a directory".format(pdf_dir))
-
+    make_dir(pdf_dir)
+        
+    # Determine the .bib filename and directory from the provided options
+    if args.bib_dest is None:
+        bib_dir = pdf_dir
+        bib_filename = 'references.bib'
+    else:
+        bib_dest = os.path.abspath(args.bib_dest)
+        if os.path.splitext(bib_dest)[1] == '.bib':
+            bib_dir = os.path.dirname(bib_dest)
+            bib_filename = os.path.basename(bib_dest)
+        else:
+            bib_dir = bib_dest
+            bib_filename = 'references.bib'
+            
+    # Create the .bib directory
+    make_dir(bib_dir)
+        
     # Write the pdf to the appropriate file
     pdf_path = os.path.join(pdf_dir, pdf_filename)
     with open(pdf_path, 'wb') as file:
@@ -201,7 +236,7 @@ def main():
     print('Saved paper to {}'.format(pdf_path))
 
     # Write the bibtex citation to the references file
-    bib_path = os.path.join(pdf_dir, 'references.bib')
+    bib_path = os.path.join(bib_dir, bib_filename)
     clean_bib(bib_path)
     delete_bibentry(bib_path, texkey)
     with open(bib_path, 'a') as file:
