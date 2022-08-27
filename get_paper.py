@@ -2,6 +2,7 @@
 Retrieve PDFs and BibTeX entries for papers from INSPIRE
 """
 import os
+import re
 import json
 import requests
 
@@ -13,19 +14,88 @@ from argparse import ArgumentParser
 ###################
 
 def parse_texkey(texkey):
-    """Parse an INSPIRE texkey to remove the colon and the random letters at the end"""
+    """
+    Parse an INSPIRE texkey to remove the colon and the random letters at the end
+    """
     i = texkey.find(':')
     return texkey[:i] + texkey[i+1:i+5]
 
 
 def to_pascal(string):
-    """Convert a string to PascalCase, ignoring non-alphanumeric characters"""
+    """
+    Convert a string to PascalCase, ignoring non-alphanumeric characters
+    """
     alphanumeric = ''.join([char if char.isalnum() else ' ' for char in string])
     return ''.join([word.title() if word.islower() else word for word in alphanumeric.split()])
 
 
+def replace_interior(string):
+    """
+    Replace all commas surrounded by quotes in a .bib file's text with the
+    placeholder text '<COMMA>', and similarly replace interior right curly
+    braces with the text '<RCURLY>'
+    """
+    # Start at 0 levels of quotes/braces
+    level = 0
+    start_quote = True
+
+    # Iterate backwards through the string
+    for i in range(len(string)-1, -1, -1):
+        
+        # Replace commas 2 or more layers deep with the placeholder
+        if string[i] == ',' and level > 1:
+            string = string[:i] + '<COMMA>' + string[i+1:]
+            
+        # Decrease the level if a left curly brace is found
+        if string[i] == '{':
+            level -= 1
+
+        # Increase the level if a right curly brace is found
+        if string[i] == '}':
+            # Replace interior right curly braces with the placeholder
+            if level > 0:
+                string = string[:i] + '<RCURLY>' + string[i+1:]
+            level += 1
+        
+        # Increase the level if starting a quote, decrease if ending
+        if string[i] == '"':
+            if start_quote:
+                level += 1
+                start_quote = False
+            else:
+                level -= 1
+                start_quote = True
+    
+    return string
+
+
+def clean_bib(path):
+    """
+    Reformat a .bib file with the correct spacing
+    """
+    if os.path.exists(path):
+
+        # Read the file
+        with open(path, 'r') as file:
+            text = file.read()
+
+        # Reformat the text
+        text = replace_interior(text)                   # Replace interior quotes/braces
+        text = re.sub(',(\s)*', ',\n    ', text)        # Fix spacing around commas
+        text = re.sub('<COMMA>', ',', text)             # Replace comma placeholders
+        text = re.sub('(\s)*@{', '@{', text)            # Fix spacing around @ symbols
+        text = re.sub('(\s)*}(\s)*', '\n}\n\n', text)   # Fix spacing around right curly braces
+        text = re.sub('<RCURLY>', '}', text)            # Replace right curly brace placeholders
+
+        # Write the modified text
+        with open(path, 'w') as file:
+            file.write(text)
+
+
 def delete_bibentry(path, key):
-    """Delete all entries from a .bib file with a given key"""
+    """
+    Delete all entries from a .bib file with a given key
+    """
     if os.path.exists(path):
 
         # Read the lines of the file
@@ -128,6 +198,7 @@ def main():
 
     # Write the bibtex citation to the references file
     bib_path = os.path.join(pdf_dir, 'references.bib')
+    clean_bib(bib_path)
     delete_bibentry(bib_path, texkey)
     with open(bib_path, 'a') as file:
         file.write(r_bibtex.text)
