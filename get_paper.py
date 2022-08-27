@@ -24,22 +24,22 @@ def to_pascal(string):
     return ''.join([word.title() if word.islower() else word for word in alphanumeric.split()])
 
 
-def clean_bib(path, texkey):
-    """Delete all entries from a .bib file with a given texkey"""
+def delete_bibentry(path, key):
+    """Delete all entries from a .bib file with a given key"""
     if os.path.exists(path):
 
         # Read the lines of the file
         with open(path, 'r') as file:
             lines = file.readlines()
 
-        # Rewrite lines to the file, but omit the given texkey
+        # Rewrite lines to the file, but omit the given key
         with open(path, 'w') as file:
             
             delete = False
             for line in lines:
 
-                # Begin deleting if the texkey is found
-                if texkey in line:
+                # Begin deleting if the key is found
+                if '{' + key + ',' in line:
                     delete = True
 
                 if not delete:
@@ -128,7 +128,7 @@ def main():
 
     # Write the bibtex citation to the references file
     bib_path = os.path.join(pdf_dir, 'references.bib')
-    clean_bib(bib_path, texkey)
+    delete_bibentry(bib_path, texkey)
     with open(bib_path, 'a') as file:
         file.write(r_bibtex.text)
         file.write('\n')
