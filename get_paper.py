@@ -144,15 +144,20 @@ def main():
     # Parse the program options and arguments
     parser = ArgumentParser(
         description=dedent("""
-            Download the PDF of a paper and add the BibTeX citation to a .bib 
+            Download the PDF of a paper and add the BibTeX citation to a .bib
             file, using the INSPIRE database.
             """),
         epilog=dedent("""
-            At least one identifier option -a, -d, or -i is required to specify 
-            the desired paper. If more than one of -a, -d, or -i is provided, 
+            At least one identifier option -a, -d, or -i is required to specify
+            the desired paper. If more than one of -a, -d, or -i is provided,
             only the first in the order listed above will be used.
             
-            If directory does not exist, it will be created.
+            The PDF will be saved to "directory/<Author><Year>_<Title>.pdf",
+            where <Author> is the first-listed author's last name, <Year> is
+            the year that the first version of the paper was released (not
+            necessarily the publication year), and <Title> is the title of the
+            the paper in PascalCase. If directory does not exist, it will be
+            created.
             
             If the option -b is not provided, the BibTeX entry will be saved to
             "directory/references.bib". Otherwise, the BibTeX entry will be
@@ -206,14 +211,13 @@ def main():
     r_bibtex = requests.get(links['bibtex'])
     r_bibtex.raise_for_status()
 
-    # Create a pdf filename from the title and texkey
-    pdf_filename = '{}_{}.pdf'.format(parse_texkey(texkey), to_pascal(title))
-
-    # Create the PDF directory
+    # Create the pdf filename and directory
     pdf_dir = os.path.abspath(args.directory)
+    pdf_filename = '{}_{}.pdf'.format(parse_texkey(texkey), to_pascal(title))
+    pdf_path = os.path.join(pdf_dir, pdf_filename)
     make_dir(pdf_dir)
         
-    # Determine the .bib filename and directory from the provided options
+    # Create the .bib filename and directory from the provided options
     if args.bib_dest is None:
         bib_dir = pdf_dir
         bib_filename = 'references.bib'
@@ -225,18 +229,15 @@ def main():
         else:
             bib_dir = bib_dest
             bib_filename = 'references.bib'
-            
-    # Create the .bib directory
+    bib_path = os.path.join(bib_dir, bib_filename)    
     make_dir(bib_dir)
         
     # Write the pdf to the appropriate file
-    pdf_path = os.path.join(pdf_dir, pdf_filename)
     with open(pdf_path, 'wb') as file:
         file.write(r_pdf.content)
     print('Saved paper to {}'.format(pdf_path))
 
     # Write the bibtex citation to the references file
-    bib_path = os.path.join(bib_dir, bib_filename)
     clean_bib(bib_path)
     delete_bibentry(bib_path, texkey)
     with open(bib_path, 'a') as file:
