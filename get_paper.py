@@ -85,10 +85,10 @@ def clean_bib(path):
             text = file.read()
 
         # Reformat the text
+        text = text.lstrip()                            # Remove leading whitespace
         text = replace_interior(text)                   # Replace interior quotes/braces
-        text = re.sub(',(\s)*', ',\n    ', text)        # Fix spacing around commas
+        text = re.sub('(\s)*,(\s)*', ',\n    ', text)   # Fix spacing around commas
         text = re.sub('<COMMA>', ',', text)             # Replace comma placeholders
-        text = re.sub('(\s)*@{', '@{', text)            # Fix spacing around @ symbols
         text = re.sub('(\s)*}(\s)*', '\n}\n\n', text)   # Fix spacing around right curly braces
         text = re.sub('<RCURLY>', '}', text)            # Replace right curly brace placeholders
 
