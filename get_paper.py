@@ -157,7 +157,7 @@ def main():
     parser.add_argument('-d', '--doi', help='DOI')
     parser.add_argument('-i', '--inspire', help='INSPIRE literature identifier')
     parser.add_argument('-b', '--bib-destination', dest='bib_dest', metavar='DEST', 
-                        help='bibliography destination or direcctory')
+                        help='bibliography destination or directory')
     args = parser.parse_args()
 
     # Determine the INSPIRE url given the provided options 
