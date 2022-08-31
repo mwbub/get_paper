@@ -46,17 +46,17 @@ def replace_interior(bib):
         # Replace commas 2 or more layers deep with the placeholder
         if bib[i] == ',' and level > 1:
             bib = bib[:i] + '<COMMA>' + bib[i+1:]
-            
-        # Decrease the level if a left curly brace is found
-        if bib[i] == '{':
-            level -= 1
-
+        
         # Increase the level if a right curly brace is found
         if bib[i] == '}':
             # Replace interior right curly braces with the placeholder
             if level > 0:
                 bib = bib[:i] + '<RCURLY>' + bib[i+1:]
             level += 1
+        
+        # Decrease the level if a left curly brace is found
+        if bib[i] == '{':
+            level -= 1
         
         # Increase the level if starting a quote, decrease if ending
         if bib[i] == '"':
