@@ -104,7 +104,7 @@ def clean_bib(path, delete_key=None):
     
     # Delete all bib entries with key delete_key
     if delete_key is not None:
-        bib = re.sub("@(\w)+\{{{}(.|\n)+?\}}\n\n".format(delete_key), '', bib)
+        bib = re.sub('@(\w)+\{{{}(.|\n)+?\}}\n\n'.format(delete_key), '', bib)
         
     bib = restore_interior(bib) # Restore interior quotes/braces
 
