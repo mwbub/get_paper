@@ -66,9 +66,9 @@ def replace_interior(bib):
             else:
                 level -= 1
                 start_quote = True
-
+    
     # Ensure that all quotations and curly braces are closed
-    if level != 0:
+    if level != 0 or not start_quote:
         raise SyntaxError('unpaired quotation or curly brace in .bib file')
     
     return bib
