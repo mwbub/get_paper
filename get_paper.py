@@ -2,7 +2,6 @@
 
 import os
 import re
-import json
 import requests
 
 from textwrap import dedent
