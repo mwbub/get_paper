@@ -38,7 +38,7 @@ def replace_interior(bib):
     # Start at 0 levels of quotes/braces
     level = 0
     start_quote = True
-
+    
     # Iterate backwards through the string
     for i in range(len(bib)-1, -1, -1):
         
@@ -75,7 +75,7 @@ def replace_interior(bib):
         raise SyntaxError('unpaired quotation or curly brace in .bib file')
     
     return bib
-    
+
 
 def restore_interior(bib):
     """
@@ -110,9 +110,9 @@ def clean_bib(path, delete_key=None):
     # Delete all bib entries with key delete_key
     if delete_key is not None:
         bib = re.sub('@(\w)+\{{{}(.|\n)+?\}}\n\n'.format(delete_key), '', bib)
-        
+    
     bib = restore_interior(bib) # Restore interior quotes/braces
-
+    
     return bib
 
 
@@ -124,7 +124,7 @@ def make_dir(path):
         os.mkdir(path)
     if not os.path.isdir(path):
         raise NotADirectoryError("{} is not a directory".format(path))
-    
+
 
 ###################
 # Main
@@ -164,7 +164,7 @@ def main():
     parser.add_argument('-b', '--bib-destination', dest='bib_dest', metavar='DEST', 
                         help='bibliography destination or directory')
     args = parser.parse_args()
-
+    
     # Determine the INSPIRE url given the provided options 
     if args.arxiv is not None:
         inspire_url = 'https://inspirehep.net/api/arxiv/{}'.format(args.arxiv)
@@ -174,40 +174,40 @@ def main():
         inspire_url = 'https://inspirehep.net/api/literature/{}'.format(args.inspire)
     else:
         parser.error('no identifier option provided')
-
+    
     # Get the INSPIRE json for the paper
     r_inspire = requests.get(inspire_url)
     r_inspire.raise_for_status()
-
+    
     # Get metadata and links from the json
     metadata = r_inspire.json()['metadata']
     links = r_inspire.json()['links']
-
-    # Get the title, texkey, and eprint id
+    
+    # Get the title and texkey
     title = metadata['titles'][0]['title']
     texkey = metadata['texkeys'][0]
-    eprint = metadata['arxiv_eprints'][0]['value']
-
+    
     # Get the pdf url, either from arxiv or directly from INSPIRE 
     if 'documents' in metadata:
         pdf_url = metadata['documents'][0]['url']
     else:
+        eprint = metadata['arxiv_eprints'][0]['value']
         pdf_url = 'https://arxiv.org/pdf/{}.pdf'.format(eprint)
-
+    
     # Get the pdf
     r_pdf = requests.get(pdf_url)
     r_pdf.raise_for_status()
-
+    
     # Get the bibtex citation
     r_bibtex = requests.get(links['bibtex'])
     r_bibtex.raise_for_status()
-
+    
     # Create the pdf filename and directory
     pdf_dir = os.path.abspath(args.directory)
     pdf_filename = '{}_{}.pdf'.format(parse_texkey(texkey), to_pascal(title))
     pdf_path = os.path.join(pdf_dir, pdf_filename)
     make_dir(pdf_dir)
-        
+    
     # Create the .bib filename and directory from the provided options
     if args.bib_dest is None:
         bib_dir = pdf_dir
@@ -222,18 +222,18 @@ def main():
             bib_filename = 'references.bib'
     bib_path = os.path.join(bib_dir, bib_filename)    
     make_dir(bib_dir)
-        
+    
     # Write the pdf to the appropriate file
     with open(pdf_path, 'wb') as file:
         file.write(r_pdf.content)
     print('Saved paper to {}'.format(pdf_path))
-
+    
     # Write the bibtex citation to the references file
     bib = clean_bib(bib_path, delete_key=texkey) + r_bibtex.text
     with open(bib_path, 'w') as file:
         file.write(bib)
     print('Saved BibTeX citation to {}'.format(bib_path))
-    
+
 
 if __name__ == '__main__':
     main()
