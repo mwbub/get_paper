@@ -1,6 +1,5 @@
-"""
-Retrieve PDFs and BibTeX entries for papers from INSPIRE.
-"""
+#!/usr/bin/env python3
+
 import os
 import re
 import json
