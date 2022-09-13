@@ -32,9 +32,9 @@ def to_pascal(string):
 
 def replace_interior(bib):
     """
-    Replace all commas surrounded by quotes in a .bib file's text with the
-    placeholder text '<COMMA>', and similarly replace interior right curly
-    braces with the text '<RCURLY>'.
+    Replace commas, equals signs, and right curly braces which appear in quoted
+    or curly-braced text in a .bib file's text with the placeholders '<COMMA>',
+    '<EQUALS>', and '<RCURLY>', respectively.
     """
     # Start at 0 levels of quotes/braces
     level = 0
@@ -46,6 +46,10 @@ def replace_interior(bib):
         # Replace commas 2 or more layers deep with the placeholder
         if bib[i] == ',' and level > 1:
             bib = bib[:i] + '<COMMA>' + bib[i+1:]
+        
+        # Replace equals signs 2 or more layers deep with the placeholder
+        if bib[i] == '=' and level > 1:
+            bib = bib[:i] + '<EQUALS>' + bib[i+1:]
         
         # Increase the level if a right curly brace is found
         if bib[i] == '}':
@@ -76,10 +80,11 @@ def replace_interior(bib):
 
 def restore_interior(bib):
     """
-    Restore the commas and right curly braces that were replaced with
-    placeholder text by replace_interior().
+    Restore the commas, equals signs, and right curly braces that were replaced
+    with placeholder text by replace_interior().
     """
     bib = re.sub('<COMMA>', ',', bib)
+    bib = re.sub('<EQUALS>', '=', bib)
     bib = re.sub('<RCURLY>', '}', bib)
     return bib
 
@@ -100,6 +105,7 @@ def clean_bib(path, delete_key=None):
     bib = bib.lstrip()                          # Remove leading whitespace
     bib = replace_interior(bib)                 # Replace interior quotes/braces
     bib = re.sub('(\s)*,(\s)*', ',\n    ', bib) # Fix spacing around commas
+    bib = re.sub('(\s)*=(\s)*', ' = ', bib)     # Fix spacing around equals signs
     bib = re.sub('(\s)*}(\s)*', '\n}\n\n', bib) # Fix spacing around right curly braces
     
     # Delete all bib entries with key delete_key
