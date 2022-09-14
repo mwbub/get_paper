@@ -160,7 +160,7 @@ def main():
     parser.add_argument('-a', '--arxiv', help='arXiv identifier')
     parser.add_argument('-d', '--doi', help='DOI')
     parser.add_argument('-i', '--inspire', help='INSPIRE literature identifier')
-    parser.add_argument('-b', '--bib-destination', dest='bib_dest', metavar='DEST', 
+    parser.add_argument('-b', '--bib', dest='bib_dest', metavar='DEST',
                         help='bibliography destination or directory')
     args = parser.parse_args()
     

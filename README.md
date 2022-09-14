@@ -19,7 +19,7 @@ optional arguments:
   -a ARXIV, --arxiv ARXIV           arXiv identifier
   -d DOI, --doi DOI                 DOI
   -i INSPIRE, --inspire INSPIRE     INSPIRE literature identifier
-  -b DEST, --bib-destination DEST   bibliography destination or directory
+  -b DEST, --bib DEST               bibliography destination or directory
 ```
 At least one identifier option `-a`, `-d`, or `-i` is required to specify
 the desired paper. If more than one of `-a`, `-d`, or `-i` is provided,
