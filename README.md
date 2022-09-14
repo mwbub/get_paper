@@ -35,8 +35,8 @@ created.
 If the option `-b` is not provided, the BibTeX entry will be saved to
 `directory/references.bib`. Otherwise, the BibTeX entry will be
 saved to `DEST` or `DEST/references.bib`, depending on whether `DEST`
-is a path to a .bib file or to a directory. If `DEST` is a directory
-which does not exist, it will be created.
+is a path to a .bib file or to a directory. If `DEST` points to a
+directory which does not exist, it will be created.
 
 ## Examples
 ### Using an arXiv identifier: 
