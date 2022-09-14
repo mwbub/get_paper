@@ -11,46 +11,39 @@ Simply clone the repository or directly download `get_paper.py` anywhere you'd l
 ```
 usage: get_paper.py [-h] [-a ARXIV] [-d DOI] [-i INSPIRE] [-b DEST] directory
 
-Download the PDF of a paper and add the BibTeX citation to a .bib
-file, using the INSPIRE database.
-
 positional arguments:
-  directory             destination directory
+  directory                         destination directory
 
 optional arguments:
-  -h, --help            show this help message and exit
-  -a ARXIV, --arxiv ARXIV
-                        arXiv identifier
-  -d DOI, --doi DOI     DOI
-  -i INSPIRE, --inspire INSPIRE
-                        INSPIRE literature identifier
-  -b DEST, --bib-destination DEST
-                        bibliography destination or directory
-
-At least one identifier option -a, -d, or -i is required to specify
-the desired paper. If more than one of -a, -d, or -i is provided,
+  -h, --help                        show this help message and exit
+  -a ARXIV, --arxiv ARXIV           arXiv identifier
+  -d DOI, --doi DOI                 DOI
+  -i INSPIRE, --inspire INSPIRE     INSPIRE literature identifier
+  -b DEST, --bib-destination DEST   bibliography destination or directory
+```
+At least one identifier option `-a`, `-d`, or `-i` is required to specify
+the desired paper. If more than one of `-a`, `-d`, or `-i` is provided,
 only the first in the order listed above will be used.
 
-The PDF will be saved to "directory/<Author><Year>_<Title>.pdf",
-where <Author> is the first-listed author's last name, <Year> is
+The PDF will be saved to `directory/<Author><Year>_<Title>.pdf`,
+where `<Author>` is the first-listed author's last name, `<Year>` is
 the year that the first version of the paper was released (not
-necessarily the publication year), and <Title> is the title of the
-the paper in PascalCase. If directory does not exist, it will be
+necessarily the publication year), and `<Title>` is the title of the
+the paper in PascalCase. If `directory` does not exist, it will be
 created.
 
-If the option -b is not provided, the BibTeX entry will be saved to
-"directory/references.bib". Otherwise, the BibTeX entry will be
-saved to "DEST" or "DEST/references.bib", depending on whether DEST
-is a path to a .bib file or to a directory. If DEST is a directory
+If the option `-b` is not provided, the BibTeX entry will be saved to
+`directory/references.bib`. Otherwise, the BibTeX entry will be
+saved to `DEST` or `DEST/references.bib`, depending on whether `DEST`
+is a path to a .bib file or to a directory. If `DEST` is a directory
 which does not exist, it will be created.
-```
 
 ## Examples
 ### Using an arXiv identifier: 
 
 `get_paper.py -a hep-th/9711200 paper_dir`
 
-This will download the paper to `./paper_dir/Maldacena1997_TheLargeNLimitOfSuperconformalFieldTheoriesAndSupergravity.pdf`, and the BibTeX entry to `./paper_dir/references.bib`. If `references.bib` already exists, it will be updated with the new entry, and repeated entries will be deleted. The `.bib` file will also be reformatted with consistent whitespace.
+This will download the paper to `./paper_dir/Maldacena1997_TheLargeNLimitOfSuperconformalFieldTheoriesAndSupergravity.pdf`, and the BibTeX entry to `./paper_dir/references.bib`. If `references.bib` already exists, it will be updated with the new entry, and repeated entries will be deleted. The .bib file will also be reformatted with consistent whitespace.
 
 ### Using a DOI:
 
@@ -64,7 +57,7 @@ This will have the same effect as above.
 
 This will also have the same effect as above.
 
-### Specifying a `.bib` file:
+### Specifying a .bib file:
 
 `get_paper.py -a 1207.7214 -b bib_dir paper_dir`
 
