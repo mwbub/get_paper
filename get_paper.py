@@ -85,7 +85,7 @@ def replace_interior(bib):
             level -= 1
         
         # Increase the level if starting a quote, decrease if ending
-        if bib[i] == '"':
+        if bib[i] == '"' and bib[i-1] != '\\':
             if start_quote:
                 level += 1
                 start_quote = False
@@ -282,6 +282,7 @@ def main(args, silent=False):
         print('Saved BibTeX citation to {}'.format(bib_path))
     
     return title
+
 
 if __name__ == '__main__':
     main(sys.argv[1:])
