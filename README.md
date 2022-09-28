@@ -79,7 +79,7 @@ Similarly, this will save the BibTeX entry to `./bib_dir/bibliography.bib`, and 
 
 This will find all arXiv identifiers in `./bib_dir/bibliography.bib`, re-download the latest versions of the corresponding papers to `./paper_dir/`, and update the BibTeX entries. This can be used to update papers and BibTeX entries in case a new version of a paper is released, or if a preprint is published in a journal. It can also be used to download papers en masse from a BibTeX file.
 
-`get_paper.py -u paper_dir -a 1207.7214`
+`get_paper.py -u -a 1207.7214 paper_dir`
 
 This will update the papers found in `./paper_dir/references.bib`, and also download the paper with arXiv identifier 1207.7214.
 
