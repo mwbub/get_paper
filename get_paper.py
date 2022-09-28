@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import sys
 import os
 import re
 import requests
@@ -11,6 +12,29 @@ from argparse import ArgumentParser, RawDescriptionHelpFormatter
 ###################
 # Functions
 ###################
+
+def read_file(path):
+    """
+    Read a file's contents, and return an empty string if it does not exist.
+    """
+    if os.path.exists(path):
+        with open(path, 'r') as file:
+            text = file.read()
+    else:
+        text = ''
+    
+    return text
+
+
+def make_dir(path):
+    """
+    Create a new directory at path. If the directory already exists, ignore it.
+    """
+    if not os.path.exists(path):
+        os.mkdir(path)
+    if not os.path.isdir(path):
+        raise NotADirectoryError("{} is not a directory".format(path))
+
 
 def parse_texkey(texkey):
     """
@@ -93,11 +117,7 @@ def clean_bib(path, delete_key=None):
     all entries with the key delete_key.
     """
     # Read the bib file if it exists
-    if os.path.exists(path):
-        with open(path, 'r') as file:
-            bib = file.read()
-    else:
-        bib = ''
+    bib = read_file(path)
     
     # Reformat the bib text
     bib = bib.lstrip()                          # Remove leading whitespace
@@ -115,22 +135,21 @@ def clean_bib(path, delete_key=None):
     return bib
 
 
-def make_dir(path):
+def get_eprints(path):
     """
-    Create a new directory at path. If the directory already exists, ignore it.
+    Retrieve the eprint IDs from a .bib file.
     """
-    if not os.path.exists(path):
-        os.mkdir(path)
-    if not os.path.isdir(path):
-        raise NotADirectoryError("{} is not a directory".format(path))
+    bib = read_file(path)
+    pattern = 'eprint\s*=[\s"{]*(\d+\.\d+|[a-zA-Z]+(-[a-zA-Z]+)?(\.[A-Z]{2})?\/\d+)(v\d+)?[\s"}]*'
+    return [match[0] for match in re.findall(pattern, bib)]
 
 
 ###################
 # Main
 ###################
 
-def main():
-
+def main(args, silent=False):
+    
     # Parse the program options and arguments
     parser = ArgumentParser(
         description=dedent("""
@@ -154,6 +173,11 @@ def main():
             saved to "DEST" or "DEST/references.bib", depending on whether DEST
             is a path to a .bib file or to a directory. If DEST points to a
             directory which does not exist, it will be created.
+            
+            If the flag -u is set, any existing papers present in the BibTeX
+            file with a valid arXiv identifier will be re-downloaded, and their
+            corresponding BibTeX entries will be updated. An identifier option
+            is not required in this case.
             """),
         formatter_class=RawDescriptionHelpFormatter)
     parser.add_argument('directory', help='destination directory')
@@ -162,9 +186,12 @@ def main():
     parser.add_argument('-i', '--inspire', help='INSPIRE literature identifier')
     parser.add_argument('-b', '--bib', dest='bib_dest', metavar='DEST',
                         help='bibliography destination or directory')
-    args = parser.parse_args()
+    parser.add_argument('-u', '--update', action='store_true', 
+                        help='update existing papers')
+    args = parser.parse_args(args)
     
     # Determine the INSPIRE url given the provided options 
+    id_provided = True
     if args.arxiv is not None:
         inspire_url = 'https://inspirehep.net/api/arxiv/{}'.format(args.arxiv)
     elif args.doi is not None:
@@ -172,7 +199,39 @@ def main():
     elif args.inspire is not None:
         inspire_url = 'https://inspirehep.net/api/literature/{}'.format(args.inspire)
     else:
+        id_provided = False
+    
+    # Check that at least one identifier was provided
+    if not id_provided and not args.update:
         parser.error('no identifier option provided')
+    
+    # Create the .bib filename from the provided options
+    pdf_dir = os.path.abspath(args.directory)
+    if args.bib_dest is None:
+        bib_dir = pdf_dir
+        bib_filename = 'references.bib'
+    else:
+        bib_dest = os.path.abspath(args.bib_dest)
+        if os.path.splitext(bib_dest)[1] == '.bib':
+            bib_dir = os.path.dirname(bib_dest)
+            bib_filename = os.path.basename(bib_dest)
+        else:
+            bib_dir = bib_dest
+            bib_filename = 'references.bib'
+    bib_path = os.path.join(bib_dir, bib_filename)
+    
+    # Update existing pdfs and bib entries
+    if args.update:
+        update_eprints = get_eprints(bib_path)
+        for count, update_eprint in enumerate(update_eprints):
+            try:
+                update_title = main(['-a', update_eprint, '-b', bib_path, pdf_dir], silent=True)
+                print('Updated "{}" [arXiv:{}] [{}/{}]'.format(update_title, update_eprint, count+1, len(update_eprints)))
+            except Exception as e:
+                print('Could not update arXiv:{} because ' 
+                      'of the following error: {} [{}/{}]'.format(update_eprint, e, count+1, len(update_eprints)))
+        if not id_provided:
+            quit()
     
     # Get the INSPIRE json for the paper
     r_inspire = requests.get(inspire_url)
@@ -185,6 +244,10 @@ def main():
     # Get the title and texkey
     title = metadata['titles'][0]['title']
     texkey = metadata['texkeys'][0]
+    
+    # Create the pdf filename
+    pdf_filename = '{}_{}.pdf'.format(parse_texkey(texkey), to_pascal(title))
+    pdf_path = os.path.join(pdf_dir, pdf_filename)
     
     # Get the pdf url, either from arxiv or directly from INSPIRE 
     if 'documents' in metadata:
@@ -201,38 +264,24 @@ def main():
     r_bibtex = requests.get(links['bibtex'])
     r_bibtex.raise_for_status()
     
-    # Create the pdf filename and directory
-    pdf_dir = os.path.abspath(args.directory)
-    pdf_filename = '{}_{}.pdf'.format(parse_texkey(texkey), to_pascal(title))
-    pdf_path = os.path.join(pdf_dir, pdf_filename)
-    make_dir(pdf_dir)
-    
-    # Create the .bib filename and directory from the provided options
-    if args.bib_dest is None:
-        bib_dir = pdf_dir
-        bib_filename = 'references.bib'
-    else:
-        bib_dest = os.path.abspath(args.bib_dest)
-        if os.path.splitext(bib_dest)[1] == '.bib':
-            bib_dir = os.path.dirname(bib_dest)
-            bib_filename = os.path.basename(bib_dest)
-        else:
-            bib_dir = bib_dest
-            bib_filename = 'references.bib'
-    bib_path = os.path.join(bib_dir, bib_filename)    
+    # Create the pdf and bib directories
+    make_dir(pdf_dir) 
     make_dir(bib_dir)
     
     # Write the pdf to the appropriate file
     with open(pdf_path, 'wb') as file:
         file.write(r_pdf.content)
-    print('Saved paper to {}'.format(pdf_path))
     
     # Write the bibtex citation to the references file
     bib = clean_bib(bib_path, delete_key=texkey) + r_bibtex.text
     with open(bib_path, 'w') as file:
         file.write(bib)
-    print('Saved BibTeX citation to {}'.format(bib_path))
-
+    
+    if not silent:
+        print('Saved paper to {}'.format(pdf_path))
+        print('Saved BibTeX citation to {}'.format(bib_path))
+    
+    return title
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv[1:])
