@@ -9,7 +9,7 @@ Simply clone the repository or directly download `get_paper.py` anywhere you'd l
 
 ## Usage
 ```
-usage: get_paper.py [-h] [-a ARXIV] [-d DOI] [-i INSPIRE] [-b DEST] directory
+usage: get_paper.py [-h] [-a ARXIV] [-d DOI] [-i INSPIRE] [-b DEST] [-u] directory
 
 positional arguments:
   directory                         destination directory
@@ -20,6 +20,7 @@ optional arguments:
   -d DOI, --doi DOI                 DOI
   -i INSPIRE, --inspire INSPIRE     INSPIRE literature identifier
   -b DEST, --bib DEST               bibliography destination or directory
+  -u, --update                      update existing papers
 ```
 At least one identifier option `-a`, `-d`, or `-i` is required to specify
 the desired paper. If more than one of `-a`, `-d`, or `-i` is provided,
@@ -37,6 +38,11 @@ If the option `-b` is not provided, the BibTeX entry will be saved to
 saved to `DEST` or `DEST/references.bib`, depending on whether `DEST`
 is a path to a .bib file or to a directory. If `DEST` points to a
 directory which does not exist, it will be created.
+
+If the flag `-u` is set, any existing papers present in the BibTeX
+file with a valid arXiv identifier will be re-downloaded, and their
+corresponding BibTeX entries will be updated. An identifier option
+is not required in this case.
 
 ## Examples
 ### Using an arXiv identifier: 
@@ -66,6 +72,16 @@ This will save the BibTeX entry to `./bib_dir/references.bib`, and `bib_dir` wil
 `get_paper.py -a 1207.7214 -b bib_dir/bibliography.bib paper_dir`
 
 Similarly, this will save the BibTeX entry to `./bib_dir/bibliography.bib`, and `bib_dir` will be created if it does not exist.
+
+### Updating existing papers:
+
+`get_paper.py -u -b bib_dir/bibliography.bib paper_dir`
+
+This will find all arXiv identifiers in `./bib_dir/bibliography.bib`, re-download the latest versions of the corresponding papers to `./paper_dir/`, and update the BibTeX entries. This can be used to update papers and BibTeX entries in case a new version of a paper is released, or if a preprint is published in a journal. It can also be used to download papers en masse from a BibTeX file.
+
+`get_paper.py -u paper_dir -a 1207.7214`
+
+This will update the papers found in `./paper_dir/references.bib`, and also download the paper with arXiv identifier 1207.7214.
 
 ## Bugs and Feature Requests
 Please submit an [issue](https://github.com/mwbub/get_paper/issues) if you encounter any bugs or have a suggestion.
