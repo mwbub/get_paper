@@ -188,6 +188,8 @@ def main(args, silent=False):
                         help='bibliography destination or directory')
     parser.add_argument('-u', '--update', action='store_true', 
                         help='update existing papers')
+    parser.add_argument('-n', '--nobib', action='store_true',
+                        help="do not create or update a bibliography entry")
     args = parser.parse_args(args)
     
     # Determine the INSPIRE url given the provided options 
@@ -259,28 +261,31 @@ def main(args, silent=False):
     # Get the pdf
     r_pdf = requests.get(pdf_url)
     r_pdf.raise_for_status()
-    
-    # Get the bibtex citation
-    r_bibtex = requests.get(links['bibtex'])
-    r_bibtex.raise_for_status()
-    
-    # Create the pdf and bib directories
-    make_dir(pdf_dir) 
-    make_dir(bib_dir)
-    
+        
     # Write the pdf to the appropriate file
+    make_dir(pdf_dir) 
     with open(pdf_path, 'wb') as file:
         file.write(r_pdf.content)
-    
-    # Write the bibtex citation to the references file
-    bib = clean_bib(bib_path, delete_key=texkey) + r_bibtex.text
-    with open(bib_path, 'w') as file:
-        file.write(bib)
-    
+        
+    # Print a confirmation message
     if not silent:
         print('Saved paper to {}'.format(pdf_path))
-        print('Saved BibTeX citation to {}'.format(bib_path))
-    
+        
+    if not args.nobib:
+        # Get the bibtex citation
+        r_bibtex = requests.get(links['bibtex'])
+        r_bibtex.raise_for_status()
+        
+        # Write the bibtex citation to the references file
+        make_dir(bib_dir)
+        bib = clean_bib(bib_path, delete_key=texkey) + r_bibtex.text
+        with open(bib_path, 'w') as file:
+            file.write(bib)
+            
+        # Print a confirmation message
+        if not silent:
+            print('Saved BibTeX citation to {}'.format(bib_path))
+            
     return title
 
 

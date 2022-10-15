@@ -9,7 +9,7 @@ Simply clone the repository or directly download `get_paper.py` anywhere you'd l
 
 ## Usage
 ```
-usage: get_paper.py [-h] [-a ARXIV] [-d DOI] [-i INSPIRE] [-b DEST] [-u] directory
+usage: get_paper.py [-h] [-a ARXIV] [-d DOI] [-i INSPIRE] [-b DEST] [-u] [-n] directory
 
 positional arguments:
   directory                         destination directory
@@ -21,6 +21,7 @@ optional arguments:
   -i INSPIRE, --inspire INSPIRE     INSPIRE literature identifier
   -b DEST, --bib DEST               bibliography destination or directory
   -u, --update                      update existing papers
+  -n, --nobib                       do not create or update a bibliography entry
 ```
 At least one identifier option `-a`, `-d`, or `-i` is required to specify
 the desired paper. If more than one of `-a`, `-d`, or `-i` is provided,
