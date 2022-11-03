@@ -50,6 +50,16 @@ def to_pascal(string):
     """
     alphanumeric = ''.join([char if char.isalnum() else ' ' for char in string])
     return ''.join([word.title() if word.islower() else word for word in alphanumeric.split()])
+    
+    
+def to_snake(string):
+    """
+    Convert a string to snake_case.
+    """
+    return '_'.join(
+        re.sub('([A-Z][a-z]+)', 
+        r' \1', re.sub('([A-Z]+)', r' \1', 
+        string.replace('-', ' '))).split()).lower()
 
 
 def replace_interior(bib):
@@ -161,18 +171,19 @@ def main(args, silent=False):
             the desired paper. If more than one of -a, -d, or -i is provided,
             only the first in the order listed above will be used.
             
-            The PDF will be saved to "directory/<Author><Year>_<Title>.pdf",
+            The PDF will be saved to DIRECTORY/<Author><Year>_<Title>.pdf,
             where <Author> is the first-listed author's last name, <Year> is
             the year that the first version of the paper was released (not
             necessarily the publication year), and <Title> is the title of the
-            the paper in PascalCase. If directory does not exist, it will be
+            the paper in PascalCase. If DIRECTORY does not exist, it will be
             created.
             
-            If the option -b is not provided, the BibTeX entry will be saved to
-            "directory/references.bib". Otherwise, the BibTeX entry will be
-            saved to "DEST" or "DEST/references.bib", depending on whether DEST
-            is a path to a .bib file or to a directory. If DEST points to a
-            directory which does not exist, it will be created.
+            If the option -b is provided, the BibTeX entry will be saved to
+            DEST, which can either be a directory or a .bib file. Otherwise,
+            the BibTeX entry will be saved to DIRECTORY. If DEST points to
+            a directory which does not exist, it will be created. If -b is
+            not provided or DEST does not point to a .bib file, a default
+            filename will be generated.
             
             If the flag -u is set, any existing papers present in the BibTeX
             file with a valid arXiv identifier will be re-downloaded, and their
@@ -180,7 +191,7 @@ def main(args, silent=False):
             is not required in this case.
             """),
         formatter_class=RawDescriptionHelpFormatter)
-    parser.add_argument('directory', help='destination directory')
+    parser.add_argument('directory', help='destination directory', metavar='DIRECTORY')
     parser.add_argument('-a', '--arxiv', help='arXiv identifier')
     parser.add_argument('-d', '--doi', help='DOI')
     parser.add_argument('-i', '--inspire', help='INSPIRE literature identifier')
@@ -211,7 +222,7 @@ def main(args, silent=False):
     pdf_dir = os.path.abspath(args.directory)
     if args.bib_dest is None:
         bib_dir = pdf_dir
-        bib_filename = 'references.bib'
+        bib_filename = to_snake(os.path.basename(pdf_dir)) + '.bib'
     else:
         bib_dest = os.path.abspath(args.bib_dest)
         if os.path.splitext(bib_dest)[1] == '.bib':
@@ -219,7 +230,7 @@ def main(args, silent=False):
             bib_filename = os.path.basename(bib_dest)
         else:
             bib_dir = bib_dest
-            bib_filename = 'references.bib'
+            bib_filename = to_snake(os.path.basename(pdf_dir)) + '.bib'
     bib_path = os.path.join(bib_dir, bib_filename)
     
     # Update existing pdfs and bib entries
