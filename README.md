@@ -23,25 +23,25 @@ optional arguments:
   -u, --update                      update existing papers
   -n, --nobib                       do not create or update a bibliography entry
 ```
-At least one identifier option -a, -d, or -i is required to specify
-the desired paper. If more than one of -a, -d, or -i is provided,
+At least one identifier option `-a`, `-d`, or `-i` is required to specify
+the desired paper. If more than one of `-a`, `-d`, or `-i` is provided,
 only the first in the order listed above will be used.
 
-The PDF will be saved to DIRECTORY/<Author><Year>_<Title>.pdf,
-where <Author> is the first-listed author's last name, <Year> is
+The PDF will be saved to `DIRECTORY/<Author><Year>_<Title>.pdf`,
+where `<Author>` is the first-listed author's last name, `<Year>` is
 the year that the first version of the paper was released (not
-necessarily the publication year), and <Title> is the title of the
-the paper in PascalCase. If DIRECTORY does not exist, it will be
+necessarily the publication year), and `<Title>` is the title of the
+the paper in PascalCase. If `DIRECTORY` does not exist, it will be
 created.
 
-If the option -b is provided, the BibTeX entry will be saved to
-DEST, which can either be a directory or a .bib file. Otherwise,
-the BibTeX entry will be saved to DIRECTORY. If DEST points to
-a directory which does not exist, it will be created. If -b is
-not provided or DEST does not point to a .bib file, a default
+If the option `-b` is provided, the BibTeX entry will be saved to
+`DEST`, which can either be a directory or a .bib file. Otherwise,
+the BibTeX entry will be saved to `DIRECTORY`. If `DEST` points to
+a directory which does not exist, it will be created. If `-b` is
+not provided or `DEST` does not point to a .bib file, a default
 filename will be generated.
 
-If the flag -u is set, any existing papers present in the BibTeX
+If the flag `-u` is set, any existing papers present in the BibTeX
 file with a valid arXiv identifier will be re-downloaded, and their
 corresponding BibTeX entries will be updated. An identifier option
 is not required in this case.
