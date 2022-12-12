@@ -9,7 +9,7 @@ Simply clone the repository or directly download `get_paper.py` anywhere you'd l
 
 ## Usage
 ```
-usage: get_paper.py [-h] [-a ARXIV] [-d DOI] [-i INSPIRE] [-b DEST] [-u] [-n] directory
+usage: get_paper.py [-h] [-a ARXIV] [-d DOI] [-i INSPIRE] [-b DEST] [-u] [-n] DIRECTORY
 
 positional arguments:
   DIRECTORY                         destination directory
